@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SnapTwin — Execution Twin Graph</title>
+  <meta name="description" content="SnapTwin Stage 3: Interactive dependency graph explorer showing PE import chains, architecture boundaries, and emulation relationships for Windows applications." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <style>
+    :root {
+      --bg:          #0d0f14;
+      --surface:     #141720;
+      --surface2:    #1c2030;
+      --border:      #2a2f42;
+      --accent:      #6366f1;
+      --accent-dim:  #4f51c0;
+      --text:        #e2e8f0;
+      --text-dim:    #8892a4;
+      --text-muted:  #4a5568;
+
+      /* Node colours — match ArchRelationship */
+      --c-native:    #22c55e;
+      --c-emulation: #f59e0b;
+      --c-mixed:     #8b5cf6;
+      --c-conflict:  #ef4444;
+      --c-unknown:   #64748b;
+      --c-system:    #334155;
+      --c-root:      #6366f1;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Header ──────────────────────────────────────────────────── */
+    header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.75rem 1.5rem;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .logo {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: -0.02em;
+    }
+    .logo span { color: var(--text-dim); font-weight: 400; }
+    .header-badge {
+      font-size: 0.65rem;
+      padding: 0.2rem 0.55rem;
+      border-radius: 99px;
+      background: var(--accent-dim);
+      color: #fff;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+    .disclaimer {
+      margin-left: auto;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    /* ── Main layout ─────────────────────────────────────────────── */
+    .layout {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── Side panel ──────────────────────────────────────────────── */
+    .side {
+      width: 320px;
+      flex-shrink: 0;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .side-section {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .side-section h2 {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+    .input-row {
+      display: flex;
+      gap: 0.5rem;
+    }
+    input[type="text"] {
+      flex: 1;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.5rem 0.75rem;
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    input[type="text"]:focus { border-color: var(--accent); }
+    input[type="text"]::placeholder { color: var(--text-muted); }
+    button {
+      background: var(--accent);
+      border: none;
+      border-radius: 6px;
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.82rem;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.08s;
+      white-space: nowrap;
+    }
+    button:hover { background: var(--accent-dim); }
+    button:active { transform: scale(0.97); }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Depth control */
+    .option-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.6rem;
+    }
+    .option-row label {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      flex: 1;
+    }
+    .option-row input[type="number"] {
+      width: 60px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text);
+      padding: 0.25rem 0.5rem;
+      font-size: 0.8rem;
+      text-align: center;
+    }
+    .option-row input[type="checkbox"] {
+      accent-color: var(--accent);
+      width: 14px; height: 14px;
+    }
+
+    /* Stats panel */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.4rem;
+    }
+    .stat-card {
+      background: var(--surface2);
+      border-radius: 6px;
+      padding: 0.5rem 0.6rem;
+    }
+    .stat-card .val {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1;
+    }
+    .stat-card .lbl {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+    }
+
+    /* Details panel */
+    .details-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1rem;
+    }
+    .detail-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+    }
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 0.3rem 0;
+      border-bottom: 1px solid var(--border);
+      gap: 0.5rem;
+    }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-key {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      flex-shrink: 0;
+    }
+    .detail-val {
+      font-size: 0.72rem;
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      text-align: right;
+      word-break: break-all;
+    }
+
+    /* Legend */
+    .legend { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.68rem;
+      color: var(--text-dim);
+    }
+    .legend-dot {
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* Warning / error banners */
+    .banner {
+      font-size: 0.72rem;
+      padding: 0.4rem 0.6rem;
+      border-radius: 4px;
+      margin-top: 0.4rem;
+    }
+    .banner.warn  { background: rgba(245,158,11,0.12); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
+    .banner.error { background: rgba(239,68,68,0.12);  color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+
+    /* ── Graph canvas ────────────────────────────────────────────── */
+    #graph-container {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      background: radial-gradient(ellipse at 30% 20%, #161a2a 0%, var(--bg) 70%);
+    }
+    svg#graph {
+      width: 100%; height: 100%;
+    }
+
+    .node circle {
+      stroke-width: 2;
+      transition: r 0.15s, filter 0.15s;
+      cursor: pointer;
+    }
+    .node circle:hover { filter: brightness(1.25); }
+    .node text {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      fill: var(--text);
+      pointer-events: none;
+      text-shadow: 0 1px 3px var(--bg);
+    }
+    .node .arch-label {
+      font-size: 8px;
+      fill: var(--text-muted);
+    }
+
+    .link {
+      fill: none;
+      stroke-opacity: 0.5;
+      stroke-width: 1.5;
+      marker-end: url(#arrowhead);
+    }
+    .link.IMPORTS        { stroke: #475569; }
+    .link.DELAY_IMPORTS  { stroke: #475569; stroke-dasharray: 4 3; }
+    .link.RESOLVES_TO    { stroke: #1e293b; }  /* nearly invisible — data-only */
+
+    /* Arch relationship edge overlays */
+    .rel-label {
+      font-size: 8px;
+      fill: var(--text-muted);
+      pointer-events: none;
+    }
+
+    /* Loading spinner */
+    .spinner {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      color: var(--text-dim);
+      font-size: 0.85rem;
+    }
+    .spinner::before {
+      content: '';
+      width: 36px; height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .empty-state {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      color: var(--text-muted);
+      text-align: center;
+      padding: 2rem;
+    }
+    .empty-state svg { opacity: 0.15; }
+    .empty-state p { font-size: 0.85rem; max-width: 320px; line-height: 1.6; }
+
+    /* Tooltip */
+    #tooltip {
+      position: absolute;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.6rem 0.8rem;
+      font-size: 0.72rem;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.12s;
+      max-width: 260px;
+      z-index: 100;
+      line-height: 1.6;
+    }
+    #tooltip.visible { opacity: 1; }
+    #tooltip .tt-name { font-weight: 600; color: var(--text); margin-bottom: 0.25rem; }
+    #tooltip .tt-row { color: var(--text-dim); }
+    #tooltip .tt-row span { color: var(--text); }
+    #tooltip .tt-warn { color: #f59e0b; font-size: 0.68rem; margin-top: 0.3rem; }
+    #tooltip .tt-conflict { color: #ef4444; font-size: 0.68rem; margin-top: 0.3rem; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Snap<span>Twin</span></div>
+  <div class="header-badge">STAGE 3</div>
+  <span style="color:var(--border)">|</span>
+  <span style="font-size:0.82rem;color:var(--text-dim)">Execution Twin Graph</span>
+  <div class="disclaimer">Static PE analysis only — no runtime evidence collected yet</div>
+</header>
+
+<div class="layout">
+
+  <!-- ── Side panel ──────────────────────────────────────── -->
+  <aside class="side">
+
+    <div class="side-section">
+      <h2>Analyze Binary</h2>
+      <div class="input-row">
+        <input id="path-input" type="text"
+          placeholder="C:\Path\To\App.exe"
+          value="C:\Windows\System32\cmd.exe" />
+        <button id="analyze-btn">Analyze</button>
+      </div>
+      <div class="option-row">
+        <label for="max-depth">Max depth</label>
+        <input id="max-depth" type="number" min="0" max="64" value="4" />
+      </div>
+      <div class="option-row">
+        <label for="sys-dlls">Include system DLLs</label>
+        <input id="sys-dlls" type="checkbox" />
+      </div>
+      <div id="error-banner" class="banner error" style="display:none"></div>
+    </div>
+
+    <div class="side-section">
+      <h2>Graph Summary</h2>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="val" id="s-nodes">—</div><div class="lbl">Nodes</div></div>
+        <div class="stat-card"><div class="val" id="s-edges">—</div><div class="lbl">Edges</div></div>
+        <div class="stat-card"><div class="val" id="s-resolved">—</div><div class="lbl">Resolved</div></div>
+        <div class="stat-card"><div class="val" id="s-missing" style="color:#ef4444">—</div><div class="lbl">Missing</div></div>
+        <div class="stat-card"><div class="val" id="s-skipped" style="color:var(--text-muted)">—</div><div class="lbl">Skipped</div></div>
+        <div class="stat-card"><div class="val" id="s-depth">—</div><div class="lbl">Max depth</div></div>
+      </div>
+    </div>
+
+    <div class="side-section">
+      <h2>Legend</h2>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--c-root)"></div>Root EXE</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--c-native)"></div>Native match</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--c-emulation)"></div>Emulation boundary</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--c-mixed)"></div>Mixed architecture</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--c-conflict)"></div>Candidate conflict</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--c-system)"></div>System DLL (skipped)</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--c-unknown)"></div>Unknown architecture</div>
+      </div>
+      <div style="margin-top:0.6rem;font-size:0.65rem;color:var(--text-muted);line-height:1.5">
+        "Candidate conflict" means a detectable architecture boundary.
+        It does not imply the application will fail — runtime evidence is required.
+      </div>
+    </div>
+
+    <!-- Selected node details -->
+    <div class="details-scroll" id="details-panel">
+      <div style="color:var(--text-muted);font-size:0.8rem">
+        Click a node to inspect its details.
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- ── Graph canvas ─────────────────────────────────────── -->
+  <main id="graph-container">
+    <div class="empty-state" id="empty-state">
+      <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+        <circle cx="32" cy="12" r="8" stroke="#6366f1" stroke-width="2"/>
+        <circle cx="14" cy="46" r="6" stroke="#64748b" stroke-width="2"/>
+        <circle cx="50" cy="46" r="6" stroke="#64748b" stroke-width="2"/>
+        <line x1="32" y1="20" x2="14" y2="40" stroke="#334155" stroke-width="1.5"/>
+        <line x1="32" y1="20" x2="50" y2="40" stroke="#334155" stroke-width="1.5"/>
+      </svg>
+      <p>Enter the path to a Windows EXE or DLL and click <strong>Analyze</strong> to build the execution twin graph.</p>
+      <p style="font-size:0.72rem">Data comes from the SnapTwin backend API — no fake data.</p>
+    </div>
+    <svg id="graph">
+      <defs>
+        <marker id="arrowhead" markerWidth="8" markerHeight="6"
+          refX="7" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#475569" />
+        </marker>
+      </defs>
+      <g id="zoom-layer"></g>
+    </svg>
+    <div id="tooltip"></div>
+  </main>
+
+</div>
+
+<script>
+// ── Constants ────────────────────────────────────────────────────────
+const API = '/api/dependencies/analyze';
+
+const REL_COLOUR = {
+  NATIVE_MATCH:       'var(--c-native)',
+  EMULATION_REQUIRED: 'var(--c-emulation)',
+  MIXED_ARCHITECTURE: 'var(--c-mixed)',
+  POTENTIAL_CONFLICT: 'var(--c-conflict)',
+  UNKNOWN:            'var(--c-unknown)',
+};
+
+const NODE_COLOUR = (node, relMap) => {
+  if (node.depth === 0) return 'var(--c-root)';
+  if (node.is_system_dll || node.analysis_skipped) return 'var(--c-system)';
+  const rel = relMap[node.node_id];
+  if (rel) return REL_COLOUR[rel] || 'var(--c-unknown)';
+  return 'var(--c-unknown)';
+};
+
+// ── DOM refs ─────────────────────────────────────────────────────────
+const pathInput   = document.getElementById('path-input');
+const analyzeBtn  = document.getElementById('analyze-btn');
+const maxDepthEl  = document.getElementById('max-depth');
+const sysDllsEl   = document.getElementById('sys-dlls');
+const errBanner   = document.getElementById('error-banner');
+const emptyState  = document.getElementById('empty-state');
+const tooltip     = document.getElementById('tooltip');
+const detailPanel = document.getElementById('details-panel');
+
+const sNodes    = document.getElementById('s-nodes');
+const sEdges    = document.getElementById('s-edges');
+const sResolved = document.getElementById('s-resolved');
+const sMissing  = document.getElementById('s-missing');
+const sSkipped  = document.getElementById('s-skipped');
+const sDepth    = document.getElementById('s-depth');
+
+// ── D3 setup ─────────────────────────────────────────────────────────
+const svg = d3.select('#graph');
+const zoomLayer = d3.select('#zoom-layer');
+
+const zoom = d3.zoom()
+  .scaleExtent([0.1, 4])
+  .on('zoom', (e) => zoomLayer.attr('transform', e.transform));
+svg.call(zoom);
+
+let simulation = null;
+
+// ── Analyze ───────────────────────────────────────────────────────────
+analyzeBtn.addEventListener('click', doAnalyze);
+pathInput.addEventListener('keydown', e => { if (e.key === 'Enter') doAnalyze(); });
+
+async function doAnalyze() {
+  const path = pathInput.value.trim();
+  if (!path) return;
+
+  setLoading(true);
+  errBanner.style.display = 'none';
+
+  try {
+    const res = await fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        path,
+        max_depth: parseInt(maxDepthEl.value) || 4,
+        analyze_system_dlls: sysDllsEl.checked,
+        extra_search_paths: [],
+      }),
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`HTTP ${res.status}: ${text}`);
+    }
+
+    const data = await res.json();
+    renderGraph(data);
+
+  } catch (err) {
+    errBanner.textContent = err.message;
+    errBanner.style.display = 'block';
+    setLoading(false);
+  }
+}
+
+// ── Loading state ────────────────────────────────────────────────────
+function setLoading(on) {
+  analyzeBtn.disabled = on;
+  analyzeBtn.textContent = on ? 'Analyzing…' : 'Analyze';
+  if (on) emptyState.innerHTML = '<div class="spinner"></div><span>Analyzing…</span>';
+}
+
+// ── Render ────────────────────────────────────────────────────────────
+function renderGraph(data) {
+  // Build a map: target_node_id → most severe relationship
+  const relMap = {};
+  const relSeverityOrder = { HIGH: 3, WARNING: 2, INFO: 1 };
+  for (const rel of (data.architecture_relationships || [])) {
+    const existing = relMap[rel.target_id];
+    const newSev = relSeverityOrder[rel.severity] || 0;
+    const oldSev = existing ? (relSeverityOrder[existing.severity] || 0) : -1;
+    if (newSev > oldSev) relMap[rel.target_id] = rel;
+  }
+
+  // Summary
+  const gs = data.graph_summary;
+  sNodes.textContent    = gs.total_nodes;
+  sEdges.textContent    = gs.total_edges;
+  sResolved.textContent = gs.resolved;
+  sMissing.textContent  = gs.missing;
+  sSkipped.textContent  = gs.skipped;
+  sDepth.textContent    = gs.max_depth_reached;
+
+  emptyState.style.display = 'none';
+
+  // Build node / link arrays for D3
+  const nodeMap = {};
+  for (const n of data.nodes) nodeMap[n.node_id] = n;
+
+  const links = data.edges
+    .filter(e => e.source_id !== e.target_id)
+    .map(e => ({ source: e.source_id, target: e.target_id, kind: e.edge_kind }));
+
+  // Clear previous graph
+  zoomLayer.selectAll('*').remove();
+  if (simulation) simulation.stop();
+
+  const width  = document.getElementById('graph-container').clientWidth;
+  const height = document.getElementById('graph-container').clientHeight;
+
+  // Force simulation
+  simulation = d3.forceSimulation(data.nodes)
+    .force('link', d3.forceLink(links).id(d => d.node_id).distance(d => {
+      // Shorter links for deeper nodes
+      return 100 - d.target.depth * 5;
+    }).strength(0.6))
+    .force('charge', d3.forceManyBody().strength(-220))
+    .force('center', d3.forceCenter(width / 2, height / 2))
+    .force('collision', d3.forceCollide(28))
+    .alphaDecay(0.03);
+
+  // Links
+  const link = zoomLayer.append('g')
+    .selectAll('line')
+    .data(links)
+    .join('line')
+    .attr('class', d => `link ${d.kind}`)
+    .style('stroke', d => {
+      if (d.kind === 'DELAY_IMPORTS') return '#334155';
+      return '#2a3250';
+    });
+
+  // Nodes
+  const node = zoomLayer.append('g')
+    .selectAll('g')
+    .data(data.nodes)
+    .join('g')
+    .attr('class', 'node')
+    .call(d3.drag()
+      .on('start', (e, d) => { if (!e.active) simulation.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
+      .on('drag',  (e, d) => { d.fx = e.x; d.fy = e.y; })
+      .on('end',   (e, d) => { if (!e.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; })
+    );
+
+  node.append('circle')
+    .attr('r', d => d.depth === 0 ? 16 : (d.is_system_dll ? 8 : 12))
+    .attr('fill', d => NODE_COLOUR(d, Object.fromEntries(
+      Object.entries(relMap).map(([k, v]) => [k, v.relationship])
+    )))
+    .attr('stroke', d => {
+      if (d.resolution && d.resolution.status === 'MISSING') return '#ef4444';
+      if (d.depth === 0) return 'rgba(99,102,241,0.6)';
+      return 'rgba(255,255,255,0.08)';
+    });
+
+  node.append('text')
+    .attr('dy', d => d.depth === 0 ? 28 : 22)
+    .attr('text-anchor', 'middle')
+    .text(d => d.name.length > 22 ? d.name.slice(0, 20) + '…' : d.name);
+
+  node.append('text')
+    .attr('class', 'arch-label')
+    .attr('dy', d => d.depth === 0 ? 38 : 30)
+    .attr('text-anchor', 'middle')
+    .text(d => {
+      const arch = d.architecture || 'UNKNOWN';
+      if (d.analysis_skipped) return `${arch} (skipped)`;
+      if (d.resolution && d.resolution.status === 'MISSING') return 'MISSING';
+      return arch;
+    });
+
+  // Tooltip
+  node.on('mouseenter', (e, d) => showTooltip(e, d, relMap))
+      .on('mousemove',  (e)    => moveTooltip(e))
+      .on('mouseleave', ()     => tooltip.classList.remove('visible'))
+      .on('click',      (e, d) => showDetails(d, relMap));
+
+  // Tick
+  simulation.on('tick', () => {
+    link
+      .attr('x1', d => d.source.x)
+      .attr('y1', d => d.source.y)
+      .attr('x2', d => d.target.x)
+      .attr('y2', d => d.target.y);
+    node.attr('transform', d => `translate(${d.x},${d.y})`);
+  });
+
+  setLoading(false);
+}
+
+// ── Tooltip ───────────────────────────────────────────────────────────
+function showTooltip(e, d, relMap) {
+  const rel = relMap[d.node_id];
+  let html = `<div class="tt-name">${d.name}</div>`;
+  html += `<div class="tt-row">Architecture: <span>${d.architecture || 'UNKNOWN'}</span></div>`;
+  html += `<div class="tt-row">Depth: <span>${d.depth}</span></div>`;
+  if (d.resolution) {
+    html += `<div class="tt-row">Status: <span>${d.resolution.status}</span></div>`;
+    if (d.resolved_path) html += `<div class="tt-row">Path: <span>${d.resolved_path.slice(-40)}</span></div>`;
+  }
+  if (rel) {
+    const cls = rel.severity === 'HIGH' ? 'tt-conflict' : (rel.severity === 'WARNING' ? 'tt-warn' : 'tt-row');
+    html += `<div class="${cls}">⬡ ${rel.relationship.replace(/_/g,' ')}</div>`;
+  }
+  if (d.analysis_skipped) {
+    html += `<div class="tt-warn">System DLL — not recursively analysed</div>`;
+  }
+  tooltip.innerHTML = html;
+  tooltip.classList.add('visible');
+  moveTooltip(e);
+}
+
+function moveTooltip(e) {
+  const x = e.clientX - document.getElementById('graph-container').getBoundingClientRect().left + 12;
+  const y = e.clientY - document.getElementById('graph-container').getBoundingClientRect().top - 10;
+  tooltip.style.left = `${x}px`;
+  tooltip.style.top  = `${y}px`;
+}
+
+// ── Detail panel ──────────────────────────────────────────────────────
+function showDetails(d, relMap) {
+  const rel = relMap[d.node_id];
+
+  const rows = [
+    ['Name',         d.name],
+    ['Architecture', d.architecture || 'UNKNOWN'],
+    ['Kind',         d.kind],
+    ['Depth',        d.depth],
+    ['Resolved',     d.resolved_path || '—'],
+    ['System DLL',   d.is_system_dll ? 'Yes' : 'No'],
+    ['Skipped',      d.analysis_skipped ? 'Yes (policy)' : 'No'],
+    ['Status',       d.resolution?.status || '—'],
+  ];
+
+  if (rel) {
+    rows.push(['Arch relationship', rel.relationship]);
+    rows.push(['Severity',          rel.severity]);
+    rows.push(['Confidence',        (rel.confidence * 100).toFixed(0) + '%']);
+  }
+
+  let html = `<div class="detail-title">${d.name}</div>`;
+  for (const [k, v] of rows) {
+    html += `<div class="detail-row"><span class="detail-key">${k}</span><span class="detail-val">${v}</span></div>`;
+  }
+
+  if (rel && rel.reason) {
+    html += `<div style="margin-top:0.75rem;font-size:0.7rem;color:var(--text-dim);line-height:1.55;padding:0.5rem;background:var(--surface2);border-radius:4px">${rel.reason}</div>`;
+  }
+
+  if (d.notes && d.notes.length) {
+    html += `<div style="margin-top:0.5rem;font-size:0.68rem;color:var(--text-muted)">${d.notes.join('<br>')}</div>`;
+  }
+
+  detailPanel.innerHTML = html;
+}
+</script>
+</body>
+</html>

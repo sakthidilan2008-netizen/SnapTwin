@@ -1,0 +1,15 @@
+pydantic>=2.6
+fastapi>=0.110
+uvicorn[standard]>=0.29
+networkx>=3.2
+structlog>=24.1
+psutil>=5.9
+PyYAML>=6.0
+
+# Windows-only. Installed automatically on win32; harmless to omit elsewhere.
+pefile>=2023.2.7; sys_platform == "win32"
+pywin32>=306; sys_platform == "win32"
+
+# Dev / test
+pytest>=8.0
+pytest-cov>=5.0

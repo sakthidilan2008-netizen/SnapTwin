@@ -1,0 +1,10 @@
+^C:\USERS\RASHMIKA K\SNAPTWIN\BUILD_MVP6_COMPUTE\CMAKEFILES\291B79B97CE09EE89F8C0FFAA1020CB0\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" "-SC:/Users/Rashmika K/SnapTwin/backend/benchmark/workloads/matrix_multiply" "-BC:/Users/Rashmika K/SnapTwin/build_mvp6_compute" --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file "C:/Users/Rashmika K/SnapTwin/build_mvp6_compute/matrix_multiply.slnx"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

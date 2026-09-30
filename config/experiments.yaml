@@ -1,0 +1,9 @@
+# Seed registry of safe, reversible intervention templates. Populated
+# properly in Stage 7 (experiments/safe_interventions.py); this file exists
+# now so config/ has its full Stage-1 shape and later stages have a place
+# to land without restructuring.
+#
+# Every entry MUST have a rollback. ExperimentEngine will refuse to load
+# an entry missing one.
+
+interventions: []

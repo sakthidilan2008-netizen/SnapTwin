@@ -1,0 +1,31 @@
+#!/usr/bin/env python3
+import sys
+sys.path.insert(0, '.')
+from backend.collectors.capability_collector import CapabilityCollector
+
+cc = CapabilityCollector()
+profile = cc.collect()
+
+print('=== SNAPDRAGON ARM64 MACHINE CAPABILITY DETECTION ===')
+print()
+print('HARDWARE:')
+print(f'  Host Architecture: {profile.host_architecture.status.value}')
+print(f'  CPU: {profile.cpu.name} ({profile.cpu.vendor})')
+print(f'  Qualcomm Status: {profile.qualcomm.status.value}')
+print()
+print('COMPILERS & TOOLS:')
+print(f'  MSVC: {profile.msvc.status.value}')
+print(f'    Path: {profile.msvc.path}')
+print(f'  Linker: {profile.linker.status.value}')
+print(f'    Path: {profile.linker.path}')
+print(f'  CMake: {profile.cmake.status.value}')
+print(f'    Path: {profile.cmake.path}')
+print(f'  Windows SDK: {profile.windows_sdk.status.value}')
+print()
+print('EXECUTION CAPABILITIES:')
+print(f'  x64 Execution: {profile.x64_execution.status.value}')
+print(f'  ARM64 Execution: {profile.arm64_execution.status.value}')
+print()
+print('COMPILATION CAPABILITIES:')
+print(f'  ARM64 Compilation: {profile.arm64_compilation.status.value}')
+print(f'    Detail: {profile.arm64_compilation.detail}')

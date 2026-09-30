@@ -1,0 +1,4 @@
+C:/Users/Rashmika K/SnapTwin/build_mvp6_compute/CMakeFiles/matrix_multiply.dir
+C:/Users/Rashmika K/SnapTwin/build_mvp6_compute/CMakeFiles/matrix_multiply_neon.dir
+C:/Users/Rashmika K/SnapTwin/build_mvp6_compute/CMakeFiles/ALL_BUILD.dir
+C:/Users/Rashmika K/SnapTwin/build_mvp6_compute/CMakeFiles/ZERO_CHECK.dir

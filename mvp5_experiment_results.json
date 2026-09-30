@@ -1,0 +1,116 @@
+{
+  "timestamp": "2026-09-30 20:07:05.586996",
+  "build_config": "Release /O2",
+  "scalar_exe": "build_mvp5_release\\Debug\\vector_reduce.exe",
+  "neon_exe": "build_mvp5_release\\Debug\\vector_reduce_neon.exe",
+  "correctness": {
+    "verified": true,
+    "output": "3322765824"
+  },
+  "measurements": [
+    [
+      "scalar",
+      0.047889
+    ],
+    [
+      "neon",
+      0.050182
+    ],
+    [
+      "scalar",
+      0.052032
+    ],
+    [
+      "neon",
+      0.069774
+    ],
+    [
+      "scalar",
+      0.036118
+    ],
+    [
+      "neon",
+      0.040965
+    ],
+    [
+      "scalar",
+      0.03711
+    ],
+    [
+      "neon",
+      0.048783
+    ],
+    [
+      "scalar",
+      0.038098
+    ],
+    [
+      "neon",
+      0.037743
+    ],
+    [
+      "scalar",
+      0.036948
+    ],
+    [
+      "neon",
+      0.048029
+    ],
+    [
+      "scalar",
+      0.048039
+    ],
+    [
+      "neon",
+      0.048239
+    ],
+    [
+      "scalar",
+      0.036452
+    ],
+    [
+      "neon",
+      0.03809
+    ],
+    [
+      "scalar",
+      0.047896
+    ],
+    [
+      "neon",
+      0.038402
+    ],
+    [
+      "scalar",
+      0.03799
+    ],
+    [
+      "neon",
+      0.03753
+    ]
+  ],
+  "statistics": {
+    "scalar": {
+      "count": 10,
+      "median": 0.038044,
+      "mean": 0.0418572,
+      "stdev": 0.006258048147962928,
+      "min": 0.036118,
+      "max": 0.052032,
+      "q1": 0.036948,
+      "q3": 0.047896,
+      "times": 10
+    },
+    "neon": {
+      "count": 10,
+      "median": 0.044497,
+      "mean": 0.0457737,
+      "stdev": 0.009914204243855827,
+      "min": 0.03753,
+      "max": 0.069774,
+      "q1": 0.03809,
+      "q3": 0.048783,
+      "times": 10
+    }
+  }
+}

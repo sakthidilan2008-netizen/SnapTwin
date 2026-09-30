@@ -1,0 +1,4 @@
+C:/Users/Rashmika K/SnapTwin/build_mvp5_release/CMakeFiles/vector_reduce.dir
+C:/Users/Rashmika K/SnapTwin/build_mvp5_release/CMakeFiles/vector_reduce_neon.dir
+C:/Users/Rashmika K/SnapTwin/build_mvp5_release/CMakeFiles/ALL_BUILD.dir
+C:/Users/Rashmika K/SnapTwin/build_mvp5_release/CMakeFiles/ZERO_CHECK.dir

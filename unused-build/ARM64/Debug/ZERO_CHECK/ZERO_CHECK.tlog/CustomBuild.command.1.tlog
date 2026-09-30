@@ -1,0 +1,10 @@
+^C:\USERS\RASHMIKA K\SNAPTWIN\UNUSED-BUILD\CMAKEFILES\35CCACC374625ED52B7B46DEC9EE7C40\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" "-SC:/Users/Rashmika K/SnapTwin/backend/benchmark/workloads/vector_reduce" "-BC:/Users/Rashmika K/SnapTwin/unused-build" --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file "C:/Users/Rashmika K/SnapTwin/unused-build/vector_reduce.slnx"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

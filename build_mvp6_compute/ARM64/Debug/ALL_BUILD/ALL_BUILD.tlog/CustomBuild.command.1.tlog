@@ -1,0 +1,10 @@
+^C:\USERS\RASHMIKA K\SNAPTWIN\BACKEND\BENCHMARK\WORKLOADS\MATRIX_MULTIPLY\CMAKELISTS.TXT
+setlocal
+"C:\Program Files (x86)\Microsoft Visual Studio\18\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" "-SC:/Users/Rashmika K/SnapTwin/backend/benchmark/workloads/matrix_multiply" "-BC:/Users/Rashmika K/SnapTwin/build_mvp6_compute" --check-stamp-file "C:/Users/Rashmika K/SnapTwin/build_mvp6_compute/CMakeFiles/generate.stamp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

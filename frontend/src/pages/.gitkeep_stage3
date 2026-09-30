@@ -1,0 +1,15 @@
+/**
+ * SnapTwin Stage 3 — Dependency Graph Explorer
+ *
+ * A standalone HTML/CSS/JS page.  Data comes from the backend API:
+ *   POST /api/dependencies/analyze
+ *
+ * The graph is rendered using the D3 force-simulation layout.
+ * D3 is loaded from a CDN; no build step required.
+ *
+ * Scientific-language rule (reflected in all UI copy):
+ *   - We say "architecture boundary detected" not "incompatible"
+ *   - We say "emulation may be required" not "will fail"
+ *   - POTENTIAL_CONFLICT nodes say "candidate conflict — runtime
+ *     evidence required" not "crash"
+ */

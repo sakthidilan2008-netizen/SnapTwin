@@ -1,0 +1,16 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\Rashmika K\SnapTwin\backend\benchmark\workloads\vector_reduce\main_neon.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\Rashmika K\SnapTwin\backend\benchmark\workloads\vector_reduce\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{5353A86D-F467-3A6C-9D5D-F86B5CD01540}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,67 @@
+# Phase 6 failure taxonomy. This is the single source of truth for failure
+# classes; backend/models/hypothesis.py::FailureClass must stay in sync with
+# the ids below (enforced by a Stage 6 test, not yet implemented in Stage 1).
+
+- id: F1
+  name: architecture_mismatch
+  description: >
+    The executable or a critical dependency's machine type does not match
+    any architecture the host can run natively or via a documented
+    emulation path.
+
+- id: F2
+  name: missing_dll
+  description: A required DLL could not be located/resolved at load time.
+
+- id: F3
+  name: wrong_dll_architecture
+  description: >
+    A required DLL was found but its architecture does not match what the
+    loading module needs.
+
+- id: F4
+  name: arm64ec_dependency_issue
+  description: >
+    An ARM64EC binary depends on a component that is not itself
+    ARM64EC/ARM64-compatible in the way the ARM64EC ABI requires.
+
+- id: F5
+  name: x64_x86_emulation_issue
+  description: >
+    An x64 or x86 component fails specifically under the Prism emulation
+    path, distinguishable from a native-architecture failure.
+
+- id: F6
+  name: cpu_feature_issue
+  description: >
+    The application requires a CPU feature/instruction not present or not
+    emulated on this host.
+
+- id: F7
+  name: driver_issue
+  description: A device driver is missing, outdated, or incompatible.
+
+- id: F8
+  name: graphics_issue
+  description: Failure localized to the graphics runtime/adapter path.
+
+- id: F9
+  name: runtime_library_issue
+  description: >
+    A managed/native runtime library (e.g. .NET, VC++ redistributable) is
+    missing or mismatched.
+
+- id: F10
+  name: memory_resource_pressure
+  description: Failure correlates with memory or other resource exhaustion.
+
+- id: F11
+  name: ai_execution_provider_fallback
+  description: >
+    An AI workload silently fell back from the expected execution provider
+    (e.g. NPU) to CPU/GPU, causing failure or severe degradation.
+
+- id: F12
+  name: update_regression
+  description: >
+    Failure correlates with a recent OS, driver, or application update.

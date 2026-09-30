@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\Rashmika K\SnapTwin\build_arm64_scalar\CMakeFiles\2af9ee2023bf65f817439d82059d98d7\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{B2012269-5512-3E4B-BDF1-354043BF9A47}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

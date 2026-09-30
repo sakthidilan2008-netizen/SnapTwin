@@ -1,0 +1,117 @@
+{
+  "timestamp": "2026-09-30 20:17:54.864332",
+  "workload": "matrix_multiply (256x256, compute-bound)",
+  "build_config": "Release /O2",
+  "scalar_exe": "build_mvp6_compute\\Debug\\matrix_multiply.exe",
+  "neon_exe": "build_mvp6_compute\\Debug\\matrix_multiply_neon.exe",
+  "correctness": {
+    "verified": true,
+    "output": "0x41500a0199d4a000"
+  },
+  "measurements": [
+    [
+      "scalar",
+      0.463913
+    ],
+    [
+      "neon",
+      0.443374
+    ],
+    [
+      "scalar",
+      0.554675
+    ],
+    [
+      "neon",
+      0.559141
+    ],
+    [
+      "scalar",
+      0.436297
+    ],
+    [
+      "neon",
+      0.343458
+    ],
+    [
+      "scalar",
+      0.332841
+    ],
+    [
+      "neon",
+      0.374896
+    ],
+    [
+      "scalar",
+      0.388663
+    ],
+    [
+      "neon",
+      0.412151
+    ],
+    [
+      "scalar",
+      0.52028
+    ],
+    [
+      "neon",
+      0.418825
+    ],
+    [
+      "scalar",
+      0.485861
+    ],
+    [
+      "neon",
+      0.517333
+    ],
+    [
+      "scalar",
+      0.549136
+    ],
+    [
+      "neon",
+      0.376407
+    ],
+    [
+      "scalar",
+      0.377622
+    ],
+    [
+      "neon",
+      0.536909
+    ],
+    [
+      "scalar",
+      0.277557
+    ],
+    [
+      "neon",
+      0.14924
+    ]
+  ],
+  "statistics": {
+    "scalar": {
+      "count": 10,
+      "median": 0.450105,
+      "mean": 0.4386845,
+      "stdev": 0.09343723514299139,
+      "min": 0.277557,
+      "max": 0.554675,
+      "q1": 0.377622,
+      "q3": 0.52028,
+      "times": 10
+    },
+    "neon": {
+      "count": 10,
+      "median": 0.41548799999999997,
+      "mean": 0.4131734,
+      "stdev": 0.11820383877315961,
+      "min": 0.14924,
+      "max": 0.559141,
+      "q1": 0.374896,
+      "q3": 0.517333,
+      "times": 10
+    }
+  }
+}

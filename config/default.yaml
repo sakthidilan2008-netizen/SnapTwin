@@ -1,0 +1,40 @@
+# SnapTwin default configuration
+# Values here are safe defaults; override per-environment via env vars or a
+# separate local.yaml (not committed) in a later stage's config loader.
+
+system:
+  # If true, refuse to run any collector/analyzer that would silently
+  # degrade a value instead of marking it unavailable. Off by default so
+  # the prototype runs on non-Windows dev machines; set true on the actual
+  # Snapdragon Windows target for stricter honesty enforcement.
+  strict_provenance: false
+
+experiments:
+  default_risk_ceiling: low   # ExperimentEngine will refuse experiments above this without explicit confirmation
+  require_rollback_plan: true
+
+demo:
+  enabled: true
+  clearly_label_simulated_data: true  # non-negotiable; see docs/LIMITATIONS.md
+
+dependency:
+  # Maximum recursive depth when following imported DLL chains.
+  # Set low enough to be safe on deeply-nested system trees.
+  max_depth: 32
+
+  # When false, system DLLs (kernel32.dll, ntdll.dll, etc.) are recorded
+  # as graph nodes but NOT recursively analysed.  Their own import tables
+  # are enormous and rarely relevant to ARM compatibility triage.
+  analyze_system_dlls: false
+
+  # Additional directories to prepend to the resolver search list.
+  # Equivalent to supplying extra entries at the front of the DLL search order.
+  extra_search_paths: []
+
+runtime:
+  # Maximum allowed execution time for a target process before being forcefully terminated.
+  timeout_seconds: 30
+
+logging:
+  level: INFO
+  structured: true
